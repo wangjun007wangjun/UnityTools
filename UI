@@ -1,0 +1,66 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.EventSystems;
+using DG.Tweening;
+
+[RequireComponent(typeof(Button))]
+//必须继承一个IDragHandler,不然在Drag的时候,如果父节点有实现IDragHandler接口的组件,up事件会提前调用
+public class ScalebleButton : MonoBehaviour,IPointerDownHandler,IPointerUpHandler,IDragHandler
+{
+    public float downScale = 0.9f;
+    public float upScale = 1.1f;
+    public float downDuration = 0.2f;
+    public float upDuration = 0.1f;
+    public float resetDuration = 0.1f;
+
+    private Button m_button;
+    public Button Button
+    {
+        get
+        {
+            if (!m_button)
+            {
+                m_button = GetComponent<Button>();
+            }
+            return m_button;
+        }
+    }
+    
+
+    public bool Interactable => Button.enabled && Button.interactable;
+
+    Tween scaleTween;
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        if (Interactable)
+        {
+            scaleTween?.Kill();
+            scaleTween = transform.DOScale(Vector3.one * downScale, downDuration);
+        }
+    }
+
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        if (Interactable)
+        {
+            scaleTween?.Kill();
+            var seq = DOTween.Sequence();
+            seq.Append(transform.DOScale(Vector3.one * upScale, upDuration));
+            seq.Append(transform.DOScale(Vector3.one, resetDuration));
+            scaleTween = seq;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        scaleTween?.Kill();
+    }
+
+    public void OnDrag(PointerEventData eventData)
+    {
+        
+    }
+}
